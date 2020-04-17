@@ -35,20 +35,25 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
 import com.google.firebase.ml.vision.text.FirebaseVisionText
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.io.IOException
 import java.lang.Integer.max
 import java.lang.Integer.min
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
+import kotlin.system.measureTimeMillis
 import kotlin.time.measureTime
 
-// This is an arbitrary number we are using to keep track of the permission
-// request. Where an app has multiple context for requesting permission,
-// this can help differentiate the different contexts.
 class MainActivity : AppCompatActivity(), LifecycleOwner {
     private lateinit var viewModel: MainViewModel
 
@@ -76,10 +81,12 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
         btn_analyze_picture.setOnClickListener {
             startRecognizing(it)
+//            startRecognizing(it)
         }
 
         requestPermissions()
         setClickListeners()
+
     }
 
 
@@ -121,13 +128,29 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun processResultText(resultText: FirebaseVisionText) {
+        val blockArray = arrayListOf<String>()
         if (resultText.textBlocks.size == 0) {
             picture_tv.text = "No text found"
             return
         }
         for (block in resultText.textBlocks) {
             val blockText = block.text
+
+            blockArray.add(block.text.toUpperCase(Locale.US))
+            Log.d("debug", blockArray.size.toString())
+
             picture_tv.append(blockText + "\n")
+        }
+        for (i in blockArray){
+            Log.d("debug", i)
+            if (i.contains("TRACKING #:")){
+                tracking_tv.text = i.removeRange(0, 12)
+            }
+            if (i.contains("SHIP TO:")){
+                val nextIndex = blockArray.indexOf(i) + 1
+                val nameArray = blockArray[nextIndex].split("\n")
+                name_tv.text = nameArray[0]
+            }
         }
     }
 
@@ -206,6 +229,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         val previewConfig = PreviewConfig.Builder().apply {
             setLensFacing(lensFacing)
             setTargetRotation(view_finder.display.rotation)
+            setTargetAspectRatio(AspectRatio.RATIO_4_3)
 
         }.build()
 
@@ -217,7 +241,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             .apply {
                 setLensFacing(lensFacing)
                 setTargetRotation(view_finder.display.rotation)
-                setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY)
+                setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY)
             }
         return ImageCapture(imageCaptureConfig.build())
     }
