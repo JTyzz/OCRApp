@@ -62,6 +62,8 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         )
     }
 
+    // CARA: move these to a separate class that controls the camera; your activity should just have UI
+    // That CameraManager can be referenced by the presenter
     private val executor: Executor by lazy { Executors.newSingleThreadExecutor() }
 
     private var imageCapture: ImageCapture? = null
@@ -74,6 +76,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
+        // CARA: you could extract this to a presenter :)
         btn_analyze_picture.setOnClickListener {
             startRecognizing(it)
         }
@@ -84,11 +87,14 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
 
     private fun setClickListeners() {
+        // CARA: this can also live in the presenter, you would just have a view <-> presenter contract
+        // that defines all the button interactions and all the presenter actions
         btn_take_picture.setOnClickListener { takePicture() }
     }
 
     private fun requestPermissions() {
         if (allPermissionsGranted()) {
+            // CARA: presenter-> onPermissionsGranted
             view_finder.post { startCamera() }
         } else {
             ActivityCompat.requestPermissions(
@@ -98,6 +104,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         }
     }
 
+    // CARA: This could live in the camera manager
     private fun startRecognizing(v: View) {
         if (preview_image.drawable != null) {
             picture_tv.text = ""
@@ -108,6 +115,8 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
             detector.processImage(image)
                 .addOnSuccessListener {
+                    // CARA: then, you could call back to the presenter from the camera manager to say
+                    // "hey, I got the text, here's what it is <string>"
                     v.isEnabled = true
                     processResultText(it)
                 }
@@ -121,6 +130,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun processResultText(resultText: FirebaseVisionText) {
+        // CARA: the presenter could handle this, and then just update the text
         if (resultText.textBlocks.size == 0) {
             picture_tv.text = "No text found"
             return
@@ -160,6 +170,10 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                             rotationDegrees.toFloat()
                         )
                         runOnUiThread {
+                            // CARA: Idea: scrap the preview image! Just one button that says "analyze"
+                            // which takes the picture, doesn't even present it to the user, and passes it
+                            // to your already written startRecognizing function... but make startRecognizing
+                            // take a bitmap instead of a view :)
                             preview_image.visibility = View.VISIBLE
                             preview_image.setImageBitmap(bitmap)
                             enableActions()
@@ -183,6 +197,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
     }
 
+    // CARA: This can be in the camera manager
     private fun startCamera() {
         CameraX.unbindAll()
 
@@ -202,6 +217,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         CameraX.bindToLifecycle(this, preview, imageCapture)
     }
 
+    // CARA: Also camera manager, and the one below it too
     private fun createPreviewUseCase(): Preview {
         val previewConfig = PreviewConfig.Builder().apply {
             setLensFacing(lensFacing)
