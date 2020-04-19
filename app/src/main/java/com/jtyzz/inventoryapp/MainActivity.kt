@@ -55,7 +55,7 @@ import kotlin.system.measureTimeMillis
 import kotlin.time.measureTime
 
 class MainActivity : AppCompatActivity(), LifecycleOwner {
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel : MainViewModel
 
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 14
@@ -79,19 +79,20 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
+        viewModel.analyzedName.observe(this, Observer {
+            name_tv.text = it
+        })
+        viewModel.analyzedNumber.observe(this, Observer {
+            tracking_tv.text = it
+        })
+
         btn_analyze_picture.setOnClickListener {
-            startRecognizing(it)
+            savePictureToMemory()
 //            startRecognizing(it)
         }
 
         requestPermissions()
-        setClickListeners()
 
-    }
-
-
-    private fun setClickListeners() {
-        btn_take_picture.setOnClickListener { takePicture() }
     }
 
     private fun requestPermissions() {
@@ -105,60 +106,45 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         }
     }
 
-    private fun startRecognizing(v: View) {
-        if (preview_image.drawable != null) {
-            picture_tv.text = ""
-            v.isEnabled = false
-            val bitmap = (preview_image.drawable as BitmapDrawable).bitmap
-            val image = FirebaseVisionImage.fromBitmap(bitmap)
-            val detector = FirebaseVision.getInstance().onDeviceTextRecognizer
+    private fun startRecognizing(bitmap: Bitmap) {
 
-            detector.processImage(image)
-                .addOnSuccessListener {
-                    v.isEnabled = true
-                    processResultText(it)
-                }
-                .addOnFailureListener {
-                    v.isEnabled = true
-                    picture_tv.text = "Failed"
-                }
-        } else {
-            Toast.makeText(this, "Select an image first", Toast.LENGTH_SHORT).show()
-        }
+        val image = FirebaseVisionImage.fromBitmap(bitmap)
+        val detector = FirebaseVision.getInstance().onDeviceTextRecognizer
+
+        detector.processImage(image)
+            .addOnSuccessListener {
+                processResultText(it)
+            }
+            .addOnFailureListener {
+                viewModel.setAnalyzedName("No text found")
+            }
     }
 
     private fun processResultText(resultText: FirebaseVisionText) {
+        Log.i("scan", resultText.text)
         val blockArray = arrayListOf<String>()
         if (resultText.textBlocks.size == 0) {
-            picture_tv.text = "No text found"
+            viewModel.setAnalyzedName("No text found")
             return
         }
         for (block in resultText.textBlocks) {
-            val blockText = block.text
-
             blockArray.add(block.text.toUpperCase(Locale.US))
-            Log.d("debug", blockArray.size.toString())
-
-            picture_tv.append(blockText + "\n")
         }
-        for (i in blockArray){
-            Log.d("debug", i)
-            if (i.contains("TRACKING #:")){
-                tracking_tv.text = i.removeRange(0, 12)
+        for (i in blockArray) {
+
+            if (i.contains("TRACKING #")) {
+                val number = i.substringAfterLast(":")
+//                val number = i.removeRange(0, 12)
+                viewModel.setAnalyzedNumber(number)
             }
-            if (i.contains("SHIP TO:")){
+            if (i.contains("SHIP TO:")) {
                 val nextIndex = blockArray.indexOf(i) + 1
                 val nameArray = blockArray[nextIndex].split("\n")
-                name_tv.text = nameArray[0]
+                val name = nameArray[0]
+                viewModel.setAnalyzedName(name)
             }
         }
     }
-
-    private fun takePicture() {
-        disableActions()
-        savePictureToMemory()
-    }
-
 
     private fun savePictureToMemory() {
         imageCapture?.takePicture(executor,
@@ -182,11 +168,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                             imageToBitmap(it),
                             rotationDegrees.toFloat()
                         )
-                        runOnUiThread {
-                            preview_image.visibility = View.VISIBLE
-                            preview_image.setImageBitmap(bitmap)
-                            enableActions()
-                        }
+                        startRecognizing(bitmap)
                     }
                     super.onCaptureSuccess(imageProxy, rotationDegrees)
                 }
@@ -263,14 +245,6 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         matrix.postRotate(-rotationDegrees.toFloat(), centerX, centerY)
 
         view_finder.setTransform(matrix)
-    }
-
-    private fun disableActions() {
-        btn_take_picture.isClickable = false
-    }
-
-    private fun enableActions() {
-        btn_take_picture.isClickable = true
     }
 
     override fun onRequestPermissionsResult(

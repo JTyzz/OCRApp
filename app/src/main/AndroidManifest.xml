@@ -18,9 +18,6 @@
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="ocr" />
-        <meta-data
-            android:name="com.google.android.gms.vision.DEPENDENCIES"
-            android:value="ocr" />
 
         <activity android:name=".MainActivity"
             android:theme="@style/Theme.AppCompat">

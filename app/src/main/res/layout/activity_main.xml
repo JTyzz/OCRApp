@@ -16,31 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.1" />
-
-    <ImageView
-        android:id="@+id/preview_image"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@id/view_finder"
-        app:layout_constraintEnd_toEndOf="@id/view_finder"
-        app:layout_constraintStart_toStartOf="@id/view_finder"
-        app:layout_constraintTop_toTopOf="@id/view_finder"
-        app:layout_constraintVertical_bias="0.1" />
-
-    <Button
-        android:id="@+id/btn_take_picture"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center"
-        android:text="Capture"
-        android:textSize="14dp"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/view_finder"
-        app:layout_constraintStart_toStartOf="@id/view_finder"/>
     <Button
         android:id="@+id/btn_analyze_picture"
         style="@style/Widget.MaterialComponents.Button"
@@ -53,35 +28,42 @@
         android:textAllCaps="false"
         android:textColor="@android:color/white"
         app:layout_constraintTop_toBottomOf="@id/view_finder"
+        app:layout_constraintStart_toStartOf="@id/view_finder"
         app:layout_constraintEnd_toEndOf="@id/view_finder"/>
 
     <TextView
-        android:id="@+id/picture_tv"
+        android:id="@+id/name_holder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
+        android:layout_marginTop="20dp"
+        android:text="Name:"
+        app:layout_constraintStart_toStartOf="@id/btn_analyze_picture"
+        app:layout_constraintTop_toBottomOf="@id/btn_analyze_picture"/>
+
+    <TextView
+        android:id="@+id/name_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        app:layout_constraintStart_toEndOf="@id/name_holder"
+        app:layout_constraintTop_toTopOf="@id/name_holder"/>
+
+    <TextView
+        android:id="@+id/tracking_holder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Tracking #:"
+        app:layout_constraintTop_toBottomOf="@id/name_holder"
+        app:layout_constraintStart_toStartOf="@id/name_holder"/>
 
     <TextView
         android:id="@+id/tracking_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintHorizontal_bias="1"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-    <TextView
-        android:id="@+id/name_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintHorizontal_bias="1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tracking_tv"/>
+        android:layout_marginStart="10dp"
+        app:layout_constraintStart_toEndOf="@id/tracking_holder"
+        app:layout_constraintTop_toTopOf="@id/tracking_holder"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
