@@ -15,30 +15,24 @@ class MainViewModel: ViewModel() {
         get() = _bitmapStore
     private val _bitmapStore = MutableLiveData<Bitmap>()
 
-    val analyzedText : LiveData<String>
-        get() = _analyzedText
-    private val _analyzedText = MutableLiveData<String>()
+    val analyzedName : LiveData<String>
+        get() = _analyzedName
+    private val _analyzedName = MutableLiveData<String>()
+
+    val analyzedNumber : LiveData<String>
+        get() = _analyzedNumber
+    private val _analyzedNumber = MutableLiveData<String>()
 
     fun storeBitmap(bitmap: Bitmap){
         _bitmapStore.postValue(bitmap)
     }
 
-    fun setAnalyzedText(visionText: FirebaseVisionText){
-        _analyzedText.postValue(visionText.text)
+    fun setAnalyzedName(name: String){
+        _analyzedName.postValue(name)
     }
 
-
-    fun bitmapAnalyze(bitmap: Bitmap){
-        val fbVisionImg = FirebaseVisionImage.fromBitmap(bitmap)
-        val fbVisionTxtDetect = FirebaseVision.getInstance().onDeviceTextRecognizer
-
-        fbVisionTxtDetect.processImage(fbVisionImg).addOnSuccessListener {
-            setAnalyzedText(it)
-            Log.d("debug", "Text found")
-        }
-            .addOnFailureListener {
-                Log.d("debug", "No text found")
-            }
+    fun setAnalyzedNumber(number: String){
+        _analyzedNumber.postValue(number)
     }
 
 
