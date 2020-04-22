@@ -103,12 +103,7 @@ class ScanViewModel: ViewModel() {
 
         }
         nameScan(lineArray)
-        for (i in blockArray) {
-            if (i.contains("TRACKING #")) {
-                val number = i.substringAfterLast(":")
-                mSetAnalyzedNumber(number)
-            }
-        }
+        numberScan(lineArray)
     }
 
     private fun rotateImage(source: Bitmap, angle: Float): Bitmap {
@@ -130,16 +125,22 @@ class ScanViewModel: ViewModel() {
             if (i.findAnyOf(roadTypes.value!!.toList(), 0, true) != null
                 && Character.isDigit(i[0])
             ){
-                Log.d("debug", "${i.findAnyOf(roadTypes.value!!.toList())}")
                 val pIndex = list.indexOf(i) - 1
                 val lineList = list[pIndex].split("\\s".toRegex())
                 val name = lineList.takeLast(2).toString()
-                Log.d("debug", "name: $name")
                 sb.append(name)
             }
         }
-        Log.d("debug", "result string: $sb")
         mSetAnalyzedName(sb.toString())
         sb.clear()
+    }
+
+    private fun numberScan(list: ArrayList<String>){
+        for (i in list){
+            if (i.startsWith("TRACKING #:") || i.startsWith("TRACKING #:") ||
+                i.startsWith("TRK#") || i.startsWith("TBA")){
+                mSetAnalyzedNumber(i)
+            }
+        }
     }
 }

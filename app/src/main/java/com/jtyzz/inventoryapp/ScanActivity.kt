@@ -94,7 +94,6 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
     private fun createPreviewUseCase(): Preview {
         val previewConfig = PreviewConfig.Builder().apply {
             setLensFacing(lensFacing)
-            setTargetRotation(view_finder.display.rotation)
             setTargetAspectRatio(AspectRatio.RATIO_4_3)
         }.build()
 
