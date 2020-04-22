@@ -28,7 +28,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 class ScanActivity : AppCompatActivity(), LifecycleOwner {
-    private lateinit var viewModel : ScanViewModel
+    private lateinit var viewModel: ScanViewModel
 
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 14
@@ -40,11 +40,8 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
         )
     }
 
-    private val executor: Executor by lazy { Executors.newSingleThreadExecutor() }
-
     private var imageCapture: ImageCapture? = null
     private var lensFacing = CameraX.LensFacing.BACK
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,10 +61,9 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
         }
 
         requestPermissions()
-
     }
 
-      private fun requestPermissions() {
+    private fun requestPermissions() {
         if (allPermissionsGranted()) {
             view_finder.post { startCamera() }
         } else {
@@ -84,15 +80,12 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
         val preview = createPreviewUseCase()
 
         preview.setOnPreviewOutputUpdateListener {
-
             val parent = view_finder.parent as ViewGroup
             parent.removeView(view_finder)
             parent.addView(view_finder, 0)
-
             view_finder.surfaceTexture = it.surfaceTexture
             updateTransform()
         }
-
         imageCapture = createCaptureUseCase()
         CameraX.bindToLifecycle(this, preview, imageCapture)
     }
@@ -102,7 +95,6 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
             setLensFacing(lensFacing)
             setTargetRotation(view_finder.display.rotation)
             setTargetAspectRatio(AspectRatio.RATIO_4_3)
-
         }.build()
 
         return Preview(previewConfig)
@@ -117,7 +109,6 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
             }
         return ImageCapture(imageCaptureConfig.build())
     }
-
 
     private fun updateTransform() {
         val matrix = Matrix()

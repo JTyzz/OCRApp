@@ -124,5 +124,4 @@ class ScanViewModel: ViewModel() {
         buffer.get(bytes)
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
     }
-
 }
