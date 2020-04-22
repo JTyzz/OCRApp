@@ -55,6 +55,7 @@ class ScanActivity : AppCompatActivity(), LifecycleOwner {
         viewModel.analyzedNumber.observe(this, Observer {
             tracking_tv.text = it
         })
+        viewModel.mSetRoadTypes(resources.getStringArray(R.array.road_types))
 
         btn_analyze_picture.setOnClickListener {
             viewModel.savePictureToMemory(imageCapture!!)

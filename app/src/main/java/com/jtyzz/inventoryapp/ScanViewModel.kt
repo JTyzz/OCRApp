@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.Image
 import android.util.Log
-import android.widget.Toast
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.LiveData
@@ -14,18 +13,14 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.text.FirebaseVisionText
-import java.io.File
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import kotlin.collections.ArrayList
 
 class ScanViewModel: ViewModel() {
 
     private val executor: Executor by lazy { Executors.newSingleThreadExecutor() }
-
-    val bitmapStore : LiveData<Bitmap>
-        get() = _bitmapStore
-    private val _bitmapStore = MutableLiveData<Bitmap>()
 
     val analyzedName : LiveData<String>
         get() = _analyzedName
@@ -35,16 +30,20 @@ class ScanViewModel: ViewModel() {
         get() = _analyzedNumber
     private val _analyzedNumber = MutableLiveData<String>()
 
-    fun storeBitmap(bitmap: Bitmap){
-        _bitmapStore.postValue(bitmap)
-    }
+    val roadTypes : LiveData<Array<String>>
+        get() = _roadTypes
+    private val _roadTypes = MutableLiveData<Array<String>>()
 
-    fun setAnalyzedName(name: String){
+    fun mSetAnalyzedName(name: String){
         _analyzedName.postValue(name)
     }
 
-    fun setAnalyzedNumber(number: String){
+    fun mSetAnalyzedNumber(number: String){
         _analyzedNumber.postValue(number)
+    }
+
+    fun mSetRoadTypes(types: Array<String>){
+        _roadTypes.postValue(types)
     }
 
     fun savePictureToMemory(imageCapture: ImageCapture){
@@ -83,31 +82,30 @@ class ScanViewModel: ViewModel() {
                 processResultText(it)
             }
             .addOnFailureListener {
-                setAnalyzedName("No text found")
+                mSetAnalyzedName("No text found")
             }
     }
 
     private fun processResultText(resultText: FirebaseVisionText) {
         Log.i("scan", resultText.text)
         val blockArray = arrayListOf<String>()
+        val lineArray = arrayListOf<String>()
         if (resultText.textBlocks.size == 0) {
-            setAnalyzedName("No text found")
+            mSetAnalyzedName("No text found")
             return
         }
         for (block in resultText.textBlocks) {
             blockArray.add(block.text.toUpperCase(Locale.US))
-        }
-        for (i in blockArray) {
+            for (line in block.lines){
+                lineArray.add(line.text.toUpperCase(Locale.US))
+            }
 
+        }
+        nameScan(lineArray)
+        for (i in blockArray) {
             if (i.contains("TRACKING #")) {
                 val number = i.substringAfterLast(":")
-                setAnalyzedNumber(number)
-            }
-            if (i.contains("SHIP TO:")) {
-                val nextIndex = blockArray.indexOf(i) + 1
-                val nameArray = blockArray[nextIndex].split("\n")
-                val name = nameArray[0]
-                setAnalyzedName(name)
+                mSetAnalyzedNumber(number)
             }
         }
     }
@@ -123,5 +121,21 @@ class ScanViewModel: ViewModel() {
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+    }
+
+    fun nameScan(list: ArrayList<String>){
+        val resultString = ""
+        for(i in list){
+            val chars = listOf("1", "2", "3", "4","5","6","7","8","9","0")
+            if (i.findAnyOf(roadTypes.value!!.toList(), 0, true) != null && Character.isDigit(i[0])){
+                Log.d("debug", "${i.findAnyOf(roadTypes.value!!.toList())}")
+                val pIndex = list.indexOf(i) - 1
+                val lineList = list[pIndex].split("\\s".toRegex())
+                val name = lineList.takeLast(2).toString()
+                Log.d("debug", "name: $name")
+                resultString.plus(name)
+            }
+        }
+        mSetAnalyzedName(resultString)
     }
 }
