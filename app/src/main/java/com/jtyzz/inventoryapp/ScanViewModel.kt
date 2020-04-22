@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.text.FirebaseVisionText
+import java.lang.StringBuilder
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -123,19 +124,22 @@ class ScanViewModel: ViewModel() {
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
     }
 
-    fun nameScan(list: ArrayList<String>){
-        val resultString = ""
+    private fun nameScan(list: ArrayList<String>){
+        val sb = StringBuilder()
         for(i in list){
-            val chars = listOf("1", "2", "3", "4","5","6","7","8","9","0")
-            if (i.findAnyOf(roadTypes.value!!.toList(), 0, true) != null && Character.isDigit(i[0])){
+            if (i.findAnyOf(roadTypes.value!!.toList(), 0, true) != null
+                && Character.isDigit(i[0])
+            ){
                 Log.d("debug", "${i.findAnyOf(roadTypes.value!!.toList())}")
                 val pIndex = list.indexOf(i) - 1
                 val lineList = list[pIndex].split("\\s".toRegex())
                 val name = lineList.takeLast(2).toString()
                 Log.d("debug", "name: $name")
-                resultString.plus(name)
+                sb.append(name)
             }
         }
-        mSetAnalyzedName(resultString)
+        Log.d("debug", "result string: $sb")
+        mSetAnalyzedName(sb.toString())
+        sb.clear()
     }
 }
